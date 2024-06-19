@@ -12,8 +12,8 @@ def get_cookies():
 holiday_type can be "Hotel" for hotels only, or "Package" for hotels and tickets
 But only the hotel prices are downloaded
 """
-def get_prices(session, day, month, year, holiday_type="Hotel", nights=1, adults=2, children=0, flights_from="LON", flights_to="MCO", flights_cabin="Economy"):
-    url = "https://www.disneyholidays.co.uk/disneyland-paris/"
+def get_prices(session, day, month, year, resort="walt-disney-world", holiday_type="Hotel", nights=1, adults=2, children=0, flights_from="LON", flights_to="MCO", flights_cabin="Economy"):
+    url = f"https://www.disneyholidays.co.uk/{resort}/"
 
     payload=f'holiday={holiday_type}&day={day}&month={month}%5E{year}&nights={nights}&adults={adults}&children={children}&flights-from={flights_from}&flights-to={flights_to}&flights-cabin={flights_cabin}&package-category=ALL&hotel-category=ALL'
     headers = {
@@ -26,7 +26,7 @@ def get_prices(session, day, month, year, holiday_type="Hotel", nights=1, adults
     response = session.post(url, headers=headers, data=payload)
     tree = html.fromstring(response.content)
 
-    hotel_names = tree.xpath('//*[contains(@class, "accommodation")]//h2/text()')
+    hotel_names = [h.xpath('string()') for h in tree.xpath('//*[contains(@class, "accommodation")]//h2')]
     hotel_prices = [int(p.replace(',', '')) for p in tree.xpath('//*[contains(@class, "accommodation")]//span[@class="pounds"]/text()')]
     assert(len(hotel_names) == len(hotel_prices))
     return dict(zip(hotel_names, hotel_prices))
